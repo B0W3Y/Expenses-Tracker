@@ -1,4 +1,4 @@
-# Data Model — Personal Expense Tracker
+# Data Model: Personal Expense Tracker
 
 ## Relationship diagram
 
@@ -47,7 +47,7 @@ Represents each registered person in the app.
 |---|---|---|
 | id | UUID | Primary key |
 | email | string | Unique, used for login |
-| password_hash | string | Never store the password in plain text — use bcrypt |
+| password_hash | string | Never store the password in plain text, use bcrypt |
 | name | string | Display name for the UI |
 | created_at | datetime | Auto |
 | updated_at | datetime | Auto |
@@ -82,8 +82,8 @@ Each individual logged expense.
 
 ## Important business rules
 
-1. A user **can only view/edit their own expenses and categories** — this is validated on every endpoint by comparing the `user_id` from the token against the `user_id` of the resource.
-2. If a category with associated expenses is deleted, decide on a strategy: block the deletion, reassign the expenses to "Other", or cascade delete (not recommended — you'd lose the history).
+1. A user **can only view/edit their own expenses and categories**. This is validated on every endpoint by comparing the `user_id` from the token against the `user_id` of the resource.
+2. If a category with associated expenses is deleted, decide on a strategy: block the deletion, reassign the expenses to "Other", or cascade delete (not recommended, since you'd lose the history).
 3. `amount` should always be positive; if you later want to support income as well as expenses, add a `type` field (`expense` | `income`) instead of using negative amounts.
 
 ## Prisma schema (implemented)

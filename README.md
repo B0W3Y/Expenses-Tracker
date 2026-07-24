@@ -17,15 +17,15 @@ design, and REST API architecture.
 
 The backend REST API is implemented. The frontend is the next milestone.
 
-- 🔐 **Authentication** — register / login with JWT and bcrypt-hashed passwords
-- 🗂️ **Categories** — full CRUD, scoped per user, with default categories seeded on signup
-- 💸 **Expenses** — full CRUD with strict ownership checks on every operation
-- 🔎 **Filtering & pagination** — by category, date range, amount range, and free-text search
-- 📊 **Spending summary** — aggregated totals grouped by category, ready for dashboard charts
-- ✅ **Validation** — every request body, query, and path param is validated with Zod
-- 🧱 **Layered architecture** — routes → controllers → services, with centralized error handling
+- Authentication: register and login with JWT, passwords hashed with bcrypt
+- Categories: full CRUD, scoped per user, with default categories seeded on signup
+- Expenses: full CRUD with strict ownership checks on every operation
+- Filtering and pagination by category, date range, amount range, and free-text search
+- Spending summary: totals grouped by category, ready for dashboard charts
+- Validation: every request body, query, and path param is validated with Zod
+- Layered architecture: routes → controllers → services, with centralized error handling
 
-## Tech Stack
+## Tech stack
 
 **Backend (implemented)**
 
@@ -64,9 +64,9 @@ backend/
 See [`Model.md`](./Model.md) for the full data model, entity relationships, and
 business rules.
 
-## Getting Started
+## Getting started
 
-### Option A — Docker (everything)
+### Option A: Docker (everything)
 
 Runs PostgreSQL and the API together. Requires Docker and Docker Compose.
 
@@ -78,7 +78,7 @@ JWT_SECRET="$(openssl rand -hex 32)" docker compose up --build
 The API will be available at `http://localhost:3000` and migrations are applied
 automatically on startup.
 
-### Option B — Local development
+### Option B: Local development
 
 Run PostgreSQL in Docker and the API on your machine with hot reload.
 
@@ -102,7 +102,7 @@ npm run dev
 
 Demo credentials after seeding: `demo@expense-tracker.dev` / `demo1234`.
 
-## Environment Variables
+## Environment variables
 
 Configured in `backend/.env` (see `backend/.env.example`):
 
@@ -110,31 +110,31 @@ Configured in `backend/.env` (see `backend/.env.example`):
 | ---------------- | --------------------------------------------- | ------------- |
 | `NODE_ENV`       | `development` \| `test` \| `production`       | `development` |
 | `PORT`           | Port the API listens on                       | `3000`        |
-| `DATABASE_URL`   | PostgreSQL connection string                  | —             |
-| `JWT_SECRET`     | Secret for signing JWTs (min. 8 chars)        | —             |
+| `DATABASE_URL`   | PostgreSQL connection string                  | none          |
+| `JWT_SECRET`     | Secret for signing JWTs (min. 8 chars)        | none          |
 | `JWT_EXPIRES_IN` | Token lifetime                                | `7d`          |
 | `CORS_ORIGIN`    | Allowed origin(s), comma-separated, or `*`    | `*`           |
 
-## API Reference
+## API reference
 
 Base URL: `/api`. Protected routes require an `Authorization: Bearer <token>` header.
 
 | Method   | Endpoint            | Auth | Description                                   |
 | -------- | ------------------- | :--: | --------------------------------------------- |
-| `GET`    | `/health`           |  —   | Health check                                  |
-| `POST`   | `/auth/register`    |  —   | Create an account (seeds default categories)  |
-| `POST`   | `/auth/login`       |  —   | Log in, returns a JWT                         |
-| `GET`    | `/auth/me`          |  ✅  | Current user's profile                        |
-| `GET`    | `/categories`       |  ✅  | List the user's categories                    |
-| `POST`   | `/categories`       |  ✅  | Create a category                             |
-| `PATCH`  | `/categories/:id`   |  ✅  | Update a category                             |
-| `DELETE` | `/categories/:id`   |  ✅  | Delete a category (blocked if it has expenses)|
-| `GET`    | `/expenses`         |  ✅  | List expenses (filter, search, paginate)      |
-| `GET`    | `/expenses/summary` |  ✅  | Spending totals grouped by category           |
-| `POST`   | `/expenses`         |  ✅  | Create an expense                             |
-| `GET`    | `/expenses/:id`     |  ✅  | Get a single expense                          |
-| `PATCH`  | `/expenses/:id`     |  ✅  | Update an expense                             |
-| `DELETE` | `/expenses/:id`     |  ✅  | Delete an expense                             |
+| `GET`    | `/health`           |  No  | Health check                                  |
+| `POST`   | `/auth/register`    |  No  | Create an account (seeds default categories)  |
+| `POST`   | `/auth/login`       |  No  | Log in, returns a JWT                         |
+| `GET`    | `/auth/me`          | Yes  | Current user's profile                        |
+| `GET`    | `/categories`       | Yes  | List the user's categories                    |
+| `POST`   | `/categories`       | Yes  | Create a category                             |
+| `PATCH`  | `/categories/:id`   | Yes  | Update a category                             |
+| `DELETE` | `/categories/:id`   | Yes  | Delete a category (blocked if it has expenses)|
+| `GET`    | `/expenses`         | Yes  | List expenses (filter, search, paginate)      |
+| `GET`    | `/expenses/summary` | Yes  | Spending totals grouped by category           |
+| `POST`   | `/expenses`         | Yes  | Create an expense                             |
+| `GET`    | `/expenses/:id`     | Yes  | Get a single expense                          |
+| `PATCH`  | `/expenses/:id`     | Yes  | Update an expense                             |
+| `DELETE` | `/expenses/:id`     | Yes  | Delete an expense                             |
 
 **Expense list filters** (query params): `categoryId`, `from`, `to`, `search`,
 `minAmount`, `maxAmount`, `page`, `pageSize`.
