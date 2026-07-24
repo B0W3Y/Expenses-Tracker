@@ -1,0 +1,15 @@
+node_modules
+dist
+src/generated
+npm-debug.log
+.env
+.env.*
+!.env.example
+.git
+.gitignore
+.claude
+.windsurf
+.agents
+skills-lock.json
+Dockerfile
+.dockerignore

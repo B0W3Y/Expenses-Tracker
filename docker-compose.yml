@@ -10,6 +10,27 @@ services:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U expense_tracker -d expense_tracker"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      CORS_ORIGIN: "*"
+      DATABASE_URL: "postgresql://expense_tracker:expense_tracker@db:5432/expense_tracker?schema=public"
+      JWT_SECRET: "${JWT_SECRET:?Set JWT_SECRET in a root .env file (gitignored) before running docker compose}"
+      JWT_EXPIRES_IN: "7d"
+    ports:
+      - "3000:3000"
 
 volumes:
   db_data:

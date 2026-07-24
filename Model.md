@@ -86,27 +86,35 @@ Each individual logged expense.
 2. If a category with associated expenses is deleted, decide on a strategy: block the deletion, reassign the expenses to "Other", or cascade delete (not recommended — you'd lose the history).
 3. `amount` should always be positive; if you later want to support income as well as expenses, add a `type` field (`expense` | `income`) instead of using negative amounts.
 
-## Prisma schema (ready to use)
+## Prisma schema (implemented)
+
+This is the schema in `backend/prisma/schema.prisma`. It uses Prisma 7's
+`prisma-client` generator with the node-postgres driver adapter (the connection
+URL is provided via `prisma.config.ts`, not inline in the datasource). Table
+names are mapped to snake_case, and indexes and delete rules encode the business
+rules below.
 
 ```prisma
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
-  id            String     @id @default(uuid())
-  email         String     @unique
-  passwordHash  String
-  name          String
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  categories    Category[]
-  expenses      Expense[]
+  id           String     @id @default(uuid())
+  email        String     @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  categories   Category[]
+  expenses     Expense[]
+
+  @@map("users")
 }
 
 model Category {
@@ -114,28 +122,46 @@ model Category {
   name      String
   color     String?
   icon      String?
-  userId    String
-  user      User      @relation(fields: [userId], references: [id])
-  expenses  Expense[]
   createdAt DateTime  @default(now())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expenses  Expense[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("categories")
 }
 
 model Expense {
-  id           String   @id @default(uuid())
-  amount       Decimal  @db.Decimal(10, 2)
-  description  String
-  expenseDate  DateTime
-  categoryId   String
-  category     Category @relation(fields: [categoryId], references: [id])
-  userId       String
-  user         User     @relation(fields: [userId], references: [id])
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          String   @id @default(uuid())
+  amount      Decimal  @db.Decimal(10, 2)
+  description String
+  expenseDate DateTime @db.Date
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  categoryId  String
+  // Restrict: a category that still has expenses cannot be deleted.
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([userId, expenseDate])
+  @@map("expenses")
 }
 ```
 
+### Design notes
+
+- `@@unique([userId, name])` prevents a user from having two categories with the same name.
+- Deleting a user cascades to their categories and expenses (`onDelete: Cascade`).
+- Deleting a category that still has expenses is blocked at the database level (`onDelete: Restrict`) and is also checked in the service layer for a friendly error message.
+- Indexes on `userId`, `categoryId`, and `(userId, expenseDate)` support the common list and filter queries.
+
 ## Next steps
 
-1. Copy the Prisma block into `backend/prisma/schema.prisma`
-2. Run `npx prisma migrate dev --name init` to create the tables in Postgres
-3. From there, start with the `POST /register` endpoint
+The schema is applied and the API is built on top of it. Remaining data-layer
+ideas: add a `type` field (`expense` | `income`) if income tracking is needed,
+and consider a soft-delete or archive strategy for categories instead of hard
+deletion.

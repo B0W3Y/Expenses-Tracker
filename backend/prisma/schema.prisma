@@ -1,7 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// Prisma schema for the Personal Expense Tracker.
+// Docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client"
@@ -12,6 +10,7 @@ datasource db {
   provider = "postgresql"
 }
 
+/// A registered person using the app.
 model User {
   id           String     @id @default(uuid())
   email        String     @unique
@@ -19,30 +18,48 @@ model User {
   name         String
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+
   categories   Category[]
   expenses     Expense[]
+
+  @@map("users")
 }
 
+/// User-owned expense category (e.g. Food, Transport). Names are unique per user.
 model Category {
   id        String    @id @default(uuid())
   name      String
   color     String?
   icon      String?
-  userId    String
-  user      User      @relation(fields: [userId], references: [id])
-  expenses  Expense[]
   createdAt DateTime  @default(now())
+
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expenses  Expense[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("categories")
 }
 
+/// A single logged expense belonging to a user and a category.
 model Expense {
   id          String   @id @default(uuid())
   amount      Decimal  @db.Decimal(10, 2)
   description String
-  expenseDate DateTime
-  categoryId  String
-  category    Category @relation(fields: [categoryId], references: [id])
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  expenseDate DateTime @db.Date
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  categoryId  String
+  // Restrict: a category that still has expenses cannot be deleted (see business rules).
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([userId, expenseDate])
+  @@map("expenses")
 }

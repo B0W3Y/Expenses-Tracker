@@ -1,12 +1,20 @@
-import express from 'express';
+import { createApp } from './app.js';
+import { env } from './config/env.js';
+import { prisma } from './config/prisma.js';
 
-const app = express();
-app.use(express.json());
+const app = createApp();
 
-app.get('/', (_req, res) => {
-  res.send('Servidor funcionando 🚀');
+const server = app.listen(env.PORT, () => {
+  console.log(`🚀 Server running at http://localhost:${env.PORT} (${env.NODE_ENV})`);
 });
 
-app.listen(3000, () => {
-  console.log('Servidor corriendo en http://localhost:3000');
-});
+/** Graceful shutdown: stop accepting connections, then close the DB pool. */
+const shutdown = (signal: string) => {
+  console.log(`\n${signal} received, shutting down...`);
+  server.close(() => {
+    void prisma.$disconnect().finally(() => process.exit(0));
+  });
+};
+
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
